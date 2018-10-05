@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ja"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MaskedWorkbook.groovy</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">KSWorkbook</a> &gt; <a href="index.source.html" class="el_package">com.kazurayam.ksworkbook</a> &gt; <span class="el_source">MaskedWorkbook.groovy</span></div><h1>MaskedWorkbook.groovy</h1><pre class="source lang-java linenums">package com.kazurayam.ksworkbook
+
+import java.nio.file.Files
+import java.nio.file.Path
+
+import org.apache.poi.hssf.usermodel.HSSFWorkbook
+import org.apache.poi.ss.usermodel.Cell
+import org.apache.poi.ss.usermodel.CellStyle
+import org.apache.poi.ss.usermodel.CreationHelper
+import org.apache.poi.ss.usermodel.DateUtil
+import org.apache.poi.ss.usermodel.RichTextString
+import org.apache.poi.ss.usermodel.Row
+import org.apache.poi.ss.usermodel.Sheet
+import org.apache.poi.ss.usermodel.Workbook
+
+/**
+ * KSWorkbook wraps an instance of Apache POI Workbook (Excel spreadsheet).
+ * KSWorkbook is designed to be used inside a Katalon Studio project.
+ *
+ */
+class MaskedWorkbook {
+
+    private Path excel_
+    private Workbook wb_
+
+    /**
+     * constructor
+     *
+     * @param excel
+     */
+    MaskedWorkbook(Path excel) {
+<span class="fc" id="L32">        excel_ = excel</span>
+<span class="fc" id="L33">        wb_ = findWorkbook(excel, DoIfNotPresent.CREATE)</span>
+    }
+
+    /**
+     *
+     */
+    void close() {
+<span class="pc bpc" id="L40" title="1 of 2 branches missed.">        if (excel_ != null) {</span>
+<span class="pc bpc" id="L41" title="1 of 2 branches missed.">            if (wb_ != null) {</span>
+<span class="fc" id="L42">                serialize(wb_, excel_)</span>
+            } else {
+<span class="pc" id="L44">                throw new IllegalStateException(&quot;workbook_ is null&quot;)</span>
+            }
+        } else {
+<span class="pc" id="L47">            throw new IllegalStateException(&quot;excel_ is null&quot;)</span>
+        }
+    }
+
+    /**
+     *
+     * @return
+     */
+    List&lt;String&gt; getSheetNames() {
+<span class="nc" id="L56">        List&lt;String&gt; sheetNames = new ArrayList&lt;String&gt;()</span>
+<span class="nc bnc" id="L57" title="All 12 branches missed.">        for (int i = 0; i &lt; wb_.getNumberOfSheets(); i++) {</span>
+<span class="nc" id="L58">            sheetNames.add(wb_.getSheetName(i))</span>
+        }
+<span class="nc" id="L60">        return sheetNames</span>
+    }
+
+    /**
+     *
+     * @return 0 if there is 1 row contained. 9 if there are 10 rows contained
+     */
+    int getLastRowNum(String sheetName,
+            DoIfNotPresent flowControl = DoIfNotPresent.STOP) {
+<span class="nc bnc" id="L69" title="All 4 branches missed.">        Sheet sheet = findSheet(sheetName, flowControl)</span>
+    }
+
+    /**
+     * @return 0 if there is 1 cell contained. 9 if there are 10 cells contained
+     */
+    int getLastCellNum(String sheetName, int rownum,
+            DoIfNotPresent flowControl = DoIfNotPresent.STOP) {
+<span class="nc bnc" id="L77" title="All 4 branches missed.">        Sheet sheet = findSheet(sheetName, flowControl)</span>
+    }
+
+
+    /**
+     *
+     * @param sheetName
+     * @param rownum
+     * @param cellnum
+     * @return
+     */
+    String readCell(String sheetName, int rownum, int cellnum,
+            DoIfNotPresent flowControl = DoIfNotPresent.IGNORE) {
+<span class="pc bpc" id="L90" title="2 of 4 branches missed.">        Cell cell = findCell(sheetName, rownum, cellnum, flowControl)</span>
+<span class="pc bpc" id="L91" title="1 of 2 branches missed.">        if (cell != null) {</span>
+<span class="fc" id="L92">            String result</span>
+<span class="fc" id="L93">            switch (getCellType(sheetName, rownum, cellnum)) {</span>
+<span class="fc bfc" id="L94" title="All 2 branches covered.">                case Cell.CELL_TYPE_NUMERIC:</span>
+<span class="fc bfc" id="L95" title="All 2 branches covered.">                    if (DateUtil.isCellDateFormatted(cell)) {</span>
+<span class="fc" id="L96">                        result = cell.getDateCellValue()</span>
+                    } else {
+<span class="fc" id="L98">                        result = cell.getNumericCellValue()</span>
+                    }
+<span class="pc" id="L100">                    break</span>
+<span class="pc bpc" id="L101" title="1 of 2 branches missed.">                case Cell.CELL_TYPE_STRING:</span>
+<span class="fc" id="L102">                    result = cell.getStringCellValue()</span>
+<span class="pc" id="L103">                    break</span>
+<span class="nc bnc" id="L104" title="All 2 branches missed.">                case Cell.CELL_TYPE_FORMULA:</span>
+<span class="nc" id="L105">                    result = cell.getCellFormula()</span>
+<span class="nc" id="L106">                    break</span>
+<span class="nc bnc" id="L107" title="All 2 branches missed.">                case Cell.CELL_TYPE_BLANK:</span>
+<span class="nc" id="L108">                    result = ''</span>
+<span class="nc" id="L109">                    break</span>
+<span class="nc bnc" id="L110" title="All 2 branches missed.">                case Cell.CELL_TYPE_BOOLEAN:</span>
+<span class="nc" id="L111">                    result = cell.getBooleanCellValue()</span>
+<span class="nc" id="L112">                    break</span>
+<span class="nc bnc" id="L113" title="All 2 branches missed.">                case Cell.CELL_TYPE_ERROR:</span>
+<span class="nc" id="L114">                    result = cell.getErrorCellValue()</span>
+<span class="nc" id="L115">                    break</span>
+                default:
+<span class="nc" id="L117">                    break</span>
+            }
+<span class="pc" id="L119">            return result</span>
+        } else {
+<span class="nc" id="L121">            throw new KSWorkbookException(&quot;#getStringCellValue(\'${sheetName}\', rownum, cellnum) is not found&quot;)</span>
+        }
+    }
+
+    void writeCell(String sheetName, int rownum, int cellnum, boolean value,
+            DoIfNotPresent flowControl = DoIfNotPresent.CREATE) {
+<span class="nc bnc" id="L127" title="All 4 branches missed.">        Cell cell = findCell(sheetName, rownum, cellnum, flowControl)</span>
+<span class="nc" id="L128">        cell.setCellValue(value)</span>
+    }
+    void writeCell(String sheetName, int rownum, int cellnum, Calendar value,
+            DoIfNotPresent flowControl = DoIfNotPresent.CREATE) {
+<span class="nc bnc" id="L132" title="All 4 branches missed.">        Cell cell = findCell(sheetName, rownum, cellnum, flowControl)</span>
+<span class="nc" id="L133">        cell.setCellValue(value)</span>
+<span class="nc" id="L134">        cell.setCellStyle(createDateCellStyle(wb_))</span>
+    }
+    void writeCell(String sheetName, int rownum, int cellnum, Date value,
+            DoIfNotPresent flowControl = DoIfNotPresent.CREATE) {
+<span class="pc bpc" id="L138" title="2 of 4 branches missed.">        Cell cell = findCell(sheetName, rownum, cellnum, flowControl)</span>
+<span class="fc" id="L139">        cell.setCellValue(value)</span>
+<span class="fc" id="L140">        cell.setCellStyle(createDateCellStyle(wb_))</span>
+    }
+    void writeCell(String sheetName, int rownum, int cellnum, double value,
+            DoIfNotPresent flowControl = DoIfNotPresent.CREATE) {
+<span class="pc bpc" id="L144" title="2 of 4 branches missed.">        Cell cell = findCell(sheetName, rownum, cellnum, flowControl)</span>
+<span class="fc" id="L145">        cell.setCellValue(value)</span>
+    }
+    void writeCell(String sheetName, int rownum, int cellnum, RichTextString value,
+            DoIfNotPresent flowControl = DoIfNotPresent.CREATE) {
+<span class="nc bnc" id="L149" title="All 4 branches missed.">        Cell cell = findCell(sheetName, rownum, cellnum, flowControl)</span>
+<span class="nc" id="L150">        cell.setCellValue(value)</span>
+    }
+    void writeCell(String sheetName, int rownum, int cellnum, String value,
+            DoIfNotPresent flowControl = DoIfNotPresent.CREATE) {
+<span class="pc bpc" id="L154" title="2 of 4 branches missed.">        Cell cell = findCell(sheetName, rownum, cellnum, flowControl)</span>
+<span class="fc" id="L155">        cell.setCellValue(value)</span>
+    }
+
+
+
+
+
+
+    /** ------------------ private methos ---------------------------------- */
+
+    /**
+     * @return
+     * 0 : Cell.CELL_TYPE_NUMERIC
+     * 1 : Cell.CELL_TYPE_STRING
+     * 2 : Cell.CELL_TYPE_FORMULA
+     * 3 : Cell.CELL_TYPE_BLANK
+     * 4 : Cell.CELL_TYPE_BOOLEAN
+     * 5 : Cell.CELL_TYPE_ERROR
+     */
+    private int getCellType(String sheetName, int rownum, int cellnum) {
+<span class="fc" id="L175">        Cell cell = findCell(sheetName, rownum, cellnum, DoIfNotPresent.STOP)</span>
+<span class="pc" id="L176">        return cell.getCellType()</span>
+    }
+
+    private Cell findCell(String sheetName, int rownum, int cellnum,
+            DoIfNotPresent flowControl = DoIfNotPresent.CREATE) {
+<span class="pc bpc" id="L181" title="2 of 4 branches missed.">        Sheet sheet = findSheet(sheetName, flowControl)</span>
+<span class="pc bpc" id="L182" title="2 of 4 branches missed.">        Row row = findRow(sheetName, rownum, flowControl)</span>
+<span class="fc" id="L183">        Cell cell = row.getCell(cellnum)</span>
+<span class="fc bfc" id="L184" title="All 2 branches covered.">        if (cell == null) {</span>
+<span class="pc bpc" id="L185" title="1 of 2 branches missed.">            if (flowControl == DoIfNotPresent.CREATE) {</span>
+<span class="fc" id="L186">                row.createCell(cellnum)</span>
+<span class="fc" id="L187">                cell = row.getCell(cellnum)</span>
+<span class="nc bnc" id="L188" title="All 2 branches missed.">            } else if (flowControl == DoIfNotPresent.STOP) {</span>
+<span class="nc" id="L189">                throw new KSWorkbookException(&quot;Sheet \'${sheet}\' Row(${rownum}) Cell(${cellnum}) is not present&quot;)</span>
+            }
+        }
+<span class="pc" id="L192">        return cell</span>
+    }
+
+    private Row findRow(String sheetName, int rownum,
+            DoIfNotPresent flowControl = DoIfNotPresent.CREATE) {
+<span class="pc bpc" id="L197" title="2 of 4 branches missed.">        Sheet sheet = findSheet(sheetName, flowControl)</span>
+<span class="fc" id="L198">        Row row = sheet.getRow(rownum)</span>
+<span class="fc bfc" id="L199" title="All 2 branches covered.">        if (row == null) {</span>
+<span class="pc bpc" id="L200" title="1 of 2 branches missed.">            if (flowControl == DoIfNotPresent.CREATE) {</span>
+<span class="fc" id="L201">                row = sheet.createRow(rownum)</span>
+<span class="nc bnc" id="L202" title="All 2 branches missed.">            } else if (flowControl == DoIfNotPresent.STOP) {</span>
+<span class="nc" id="L203">                throw new KSWorkbookException(&quot;Sheet \'${sheet}\' Row(${rownum}) is not present&quot;)</span>
+            }
+        }
+<span class="pc" id="L206">        return row</span>
+    }
+
+    /**
+     *
+     */
+    private Sheet findSheet(String sheetName,
+            DoIfNotPresent flowControl = DoIfNotPresent.CREATE) {
+<span class="fc" id="L214">        Sheet sheet = wb_.getSheet(sheetName)</span>
+<span class="fc bfc" id="L215" title="All 2 branches covered.">        if (sheet == null) {</span>
+<span class="pc bpc" id="L216" title="1 of 2 branches missed.">            if (flowControl == DoIfNotPresent.CREATE) {</span>
+<span class="fc" id="L217">                wb_.createSheet(sheetName)</span>
+<span class="fc" id="L218">                sheet = wb_.getSheet(sheetName)</span>
+<span class="nc bnc" id="L219" title="All 2 branches missed.">            } else if (flowControl == DoIfNotPresent.STOP) {</span>
+<span class="nc" id="L220">                throw new KSWorkbookException(&quot;Sheet \'${sheetName}\' is not present&quot;)</span>
+            }
+        }
+<span class="pc" id="L223">        return sheet</span>
+    }
+
+    /**
+     *
+     */
+    private static Workbook findWorkbook(Path excel,
+            DoIfNotPresent flowControl = DoIfNotPresent.CREATE) {
+<span class="fc" id="L231">        HSSFWorkbook wb</span>
+<span class="fc bfc" id="L232" title="All 2 branches covered.">        if (Files.exists(excel)) {</span>
+<span class="fc" id="L233">            FileInputStream fis = new FileInputStream(excel.toFile())</span>
+<span class="fc" id="L234">            wb = new HSSFWorkbook(fis)</span>
+        } else {
+<span class="pc bpc" id="L236" title="1 of 2 branches missed.">            if (flowControl == DoIfNotPresent.CREATE) {</span>
+<span class="fc" id="L237">                wb = new HSSFWorkbook()</span>
+<span class="nc bnc" id="L238" title="All 2 branches missed.">            } else if (flowControl == DoIfNotPresent.STOP) {</span>
+<span class="nc" id="L239">                throw new KSWorkbookException(&quot;${excel.toString()} is not present&quot;)</span>
+            }
+        }
+<span class="pc" id="L242">        return (Workbook)wb</span>
+    }
+
+    /**
+     *
+     */
+    private static CellStyle createDateCellStyle(Workbook wb) {
+<span class="fc" id="L249">        CreationHelper createHelper = wb.getCreationHelper()</span>
+<span class="fc" id="L250">        CellStyle cellStyle = wb.createCellStyle()</span>
+<span class="fc" id="L251">        short style = createHelper.createDataFormat().getFormat(&quot;yyyy/mm/dd h:mm&quot;)</span>
+<span class="fc" id="L252">        cellStyle.setDataFormat(style)</span>
+<span class="pc" id="L253">        return cellStyle</span>
+    }
+
+    /**
+     *
+     */
+    private static void serialize(Workbook workbook, Path excel) {
+<span class="pc bpc" id="L260" title="2 of 4 branches missed.">        if (!Files.exists(excel.getParent())) {</span>
+<span class="nc" id="L261">            Files.createDirectories(excel.getParent())</span>
+        }
+<span class="fc" id="L263">        FileOutputStream fos = new FileOutputStream(excel.toFile())</span>
+<span class="fc" id="L264">        workbook.write(fos)</span>
+<span class="fc" id="L265">        fos.flush()</span>
+<span class="fc" id="L266">        fos.close()</span>
+    }
+
+    /**
+     *
+     */
+    enum DoIfNotPresent {
+        CREATE,
+        STOP,
+        IGNORE
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.0.201801022044</span></div></body></html>

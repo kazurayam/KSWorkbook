@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.kazurayam.ksworkbook.MaskedWorkbookSpec" tests="5" skipped="0" failures="1" errors="0" timestamp="2018-10-05T05:20:41" hostname="N01-0370" time="1.357">
+  <properties/>
+  <testcase name="testSmoke" classname="com.kazurayam.ksworkbook.MaskedWorkbookSpec" time="0.787"/>
+  <testcase name="testCreatingMultipleSheets" classname="com.kazurayam.ksworkbook.MaskedWorkbookSpec" time="0.022"/>
+  <testcase name="testReadCell_String" classname="com.kazurayam.ksworkbook.MaskedWorkbookSpec" time="0.059"/>
+  <testcase name="testReadCell_Numeric" classname="com.kazurayam.ksworkbook.MaskedWorkbookSpec" time="0.034"/>
+  <testcase name="testReadCell_Date" classname="com.kazurayam.ksworkbook.MaskedWorkbookSpec" time="0.455">
+    <failure message="Condition not satisfied:&#10;&#10;value == &quot;2018/10/05 11:34&quot;&#10;|     |&#10;|     false&#10;|     20 differences (28% similarity)&#10;|     (Fri Oct )05 11:34(:00 JST 2018)&#10;|     (2018/10/)05 11:34(------------)&#10;Fri Oct 05 11:34:00 JST 2018&#10;" type="org.spockframework.runtime.SpockComparisonFailure">Condition not satisfied:
+
+value == &quot;2018/10/05 11:34&quot;
+|     |
+|     false
+|     20 differences (28% similarity)
+|     (Fri Oct )05 11:34(:00 JST 2018)
+|     (2018/10/)05 11:34(------------)
+Fri Oct 05 11:34:00 JST 2018
+
+	at com.kazurayam.ksworkbook.MaskedWorkbookSpec.testReadCell_Date(MaskedWorkbookSpec.groovy:107)
+</failure>
+  </testcase>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
